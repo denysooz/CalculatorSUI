@@ -7,6 +7,14 @@
 
 import Foundation
 
-enum Operation {
-    case add, subtract, multiply, divide, none
+enum Operation: String {
+    case add = "+"
+    case subtract = "-"
+    case multiply = "*"
+    case divide = "/"
+    case none = ""
+    
+    func toString() -> String {
+        return self.rawValue
+    }
 }
