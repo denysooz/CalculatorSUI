@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CalcView: View {
     
-    @StateObject var viewModel: CalcViewModel
+    @StateObject private var viewModel = CalcViewModel()
     
     var body: some View {
         ZStack {
@@ -19,21 +19,34 @@ struct CalcView: View {
                 Spacer()
                 //text
                 VStack {
-                    HStack {
+                    HStack() {
                         Spacer()
                         Text(viewModel.value)
                             .bold()
-                            .font(.system(size: 64))
+                            .font(.system(size: 52))
                             .foregroundStyle(.white)
+                            .gesture(
+                                DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                    .onEnded { value in
+                                        if value.translation.width < 0 {
+                                            viewModel.deleteLastCharacter()
+                                        } else if value.translation.width > 0 {
+                                            viewModel.deleteLastCharacter()
+                                        }
+                                    }
+                            )
                     }
                     .padding(.bottom)
                     .padding(.trailing)
+                    .onChange(of: viewModel.value) { newValue in
+                                    viewModel.editingChanged(newValue)
+                                }
                     
                     HStack {
                         Spacer()
                         Text("\(viewModel.calculatedValue)")
                             .bold()
-                            .font(.system(size: 64))
+                            .font(.system(size: 52))
                             .foregroundStyle(.gray)
                     }
                     .padding(.trailing)
@@ -59,7 +72,7 @@ struct CalcView: View {
                                     .background(item.buttonBackgroundColor)
                                     .foregroundStyle(item.buttonTextColor)
                                     .cornerRadius(8)
-                                    
+                                
                             }
                         }
                     }
@@ -82,5 +95,5 @@ struct CalcView: View {
 }
 
 #Preview {
-    CalcView(viewModel: CalcViewModel())
+    CalcView()
 }

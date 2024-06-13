@@ -10,7 +10,18 @@ import SwiftUI
 
 class CalcViewModel: ObservableObject {
     
-    @Published var value = "0"
+    @Published var characterLimit: Int
+    init(limit: Int = 12){
+        characterLimit = limit
+    }
+    @Published var value = "0" {
+        didSet {
+            if value.count > 10 {
+                value = String(value.prefix(10))
+            }
+            editingChanged(value)
+        }
+    }
     @Published var calculatedValue: String = "0"
     @Published var tappedNumber: Int = 0
     @Published var currentOperation: Operation = .none
@@ -80,17 +91,17 @@ class CalcViewModel: ObservableObject {
             value = String(firstNumber) + currentOperation.toString()
         }
     }
-
+    
     private func calculateResult() {
         switch currentOperation {
         case .add:
-            calculatedValue = formatResult(firstNumber + (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0))
+            calculatedValue = formatResult(Decimal(firstNumber + (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0)))
             value = calculatedValue
         case .subtract:
-            calculatedValue = formatResult(firstNumber - (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0))
+            calculatedValue = formatResult(Decimal(firstNumber - (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0)))
             value = calculatedValue
         case .multiply:
-            calculatedValue = formatResult(firstNumber * (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0))
+            calculatedValue = formatResult(Decimal(firstNumber * (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0)))
             value = calculatedValue
         case .divide:
             let secondNumberString = value.components(separatedBy: currentOperation.toString()).last ?? "0"
@@ -99,7 +110,7 @@ class CalcViewModel: ObservableObject {
                 value = "Error"
                 calculatedValue = "0"
             } else {
-                calculatedValue = formatResult(firstNumber / secondNumber)
+                calculatedValue = formatResult(Decimal(firstNumber / secondNumber))
                 value = calculatedValue
             }
         case .none:
@@ -107,29 +118,15 @@ class CalcViewModel: ObservableObject {
         }
     }
     
-    private func formatResult(_ value: Double) -> String {
+    private func formatResult(_ value: Decimal) -> String {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimal
         numberFormatter.locale = Locale(identifier: "en_US") // or Locale.current
-        numberFormatter.minimumFractionDigits = getMinimumFractionDigits(for: value)
-        numberFormatter.maximumFractionDigits = getMaximumFractionDigits(for: value)
-        
-        return numberFormatter.string(from: NSNumber(value: value)) ?? "Error"
+
+        let formattedValue = numberFormatter.string(from: value as NSNumber) ?? "Error"
+        return formattedValue
     }
-    
-    private func getMinimumFractionDigits(for value: Double) -> Int {
-        let absoluteValue = abs(value)
-        if absoluteValue < 1 {
-            return 6
-        } else {
-            return 2
-        }
-    }
-    
-    private func getMaximumFractionDigits(for value: Double) -> Int {
-        return getMinimumFractionDigits(for: value)
-    }
-    
+
     private func operationForButton(_ button: CalcButton) -> Operation {
         switch button {
         case .add:
@@ -144,6 +141,27 @@ class CalcViewModel: ObservableObject {
             return .none
         }
     }
+    
+    func deleteLastCharacter() {
+        if !value.isEmpty {
+            value.removeLast()
+            if value.isEmpty {
+                value = "0"
+            }
+        }
+    }
+    
+    func updateCalculatedValue(_ newValue: String) {
+        calculatedValue = newValue
+    }
+    
+    func editingChanged(_ value: String) {
+        if value.isEmpty {
+            self.calculatedValue = "0"
+        } else {
+            self.calculatedValue = value
+        }
+    }
 }
 
 extension String {
@@ -151,3 +169,4 @@ extension String {
         return Double(self) ?? 0.0
     }
 }
+
