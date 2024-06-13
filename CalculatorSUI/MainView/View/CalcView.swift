@@ -38,11 +38,10 @@ struct CalcView: View {
                     }
                     .padding(.bottom)
                     .padding(.trailing)
-                
                     
                     HStack {
                         Spacer()
-                        Text("\(viewModel.calculatedValue)")
+                        Text("\(viewModel.formattedCalculatedValue)")
                             .bold()
                             .font(.system(size: 52))
                             .foregroundStyle(.gray)
@@ -79,9 +78,6 @@ struct CalcView: View {
             }
         }
     }
-    
-    
-    
     
     func buttonWidth(item: CalcButton) -> CGFloat {
         return item == .equal ? (UIScreen.main.bounds.width - (4*6))/4 * 2 : (UIScreen.main.bounds.width - (5*12))/4

@@ -9,7 +9,6 @@ import SwiftUI
 
 @main
 struct CalculatorSUIApp: App {
-    
     var body: some Scene {
         WindowGroup {
             CalcView()

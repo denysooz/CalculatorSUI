@@ -11,20 +11,25 @@ import SwiftUI
 class CalcViewModel: ObservableObject {
     
     var characterLimit: Int
-    init(limit: Int = 12){
+    init(limit: Int = 9){
         characterLimit = limit
     }
     @Published var value = "0" {
         didSet {
-            if value.count > 10 {
-                value = String(value.prefix(10))
+            if value.count > characterLimit {
+                value = String(value.prefix(characterLimit))
             }
         }
     }
-    @Published var calculatedValue = 0
+    var calculatedValue: Double = 0 {
+        didSet {
+            formattedCalculatedValue = formatResult(calculatedValue)
+        }
+    }
+    @Published var formattedCalculatedValue: String = "0"
     var runningNumber = 0
-    var firstNumber: Int = 0
-    var secondNumber: Int = 0
+    var firstNumber: Double = 0
+    var secondNumber: Double = 0
     var currentOperation: Operation = .none
     
     let buttons: [[CalcButton]] = [
@@ -34,7 +39,7 @@ class CalcViewModel: ObservableObject {
         [.one, .two, .three, .add],
         [.zero, .decimal, .equal]
     ]
-
+    
     func didTap(button: CalcButton) {
         switch button {
         case .add, .subtract, .multiply, .divide:
@@ -42,13 +47,13 @@ class CalcViewModel: ObservableObject {
                 if value == "0" {
                     firstNumber = calculatedValue
                 } else {
-                    firstNumber = Int(value) ?? 0
+                    firstNumber = Double(value) ?? 0
                 }
                 value = "0"
             } else {
-                secondNumber = Int(value) ?? 0
+                secondNumber = Double(value) ?? 0
                 calculateResult()
-                firstNumber = secondNumber
+                firstNumber = calculatedValue
                 value = "0"
             }
             
@@ -63,7 +68,7 @@ class CalcViewModel: ObservableObject {
             }
             
         case .equal:
-            secondNumber = Int(value) ?? 0
+            secondNumber = Double(value) ?? 0
             calculateResult()
             currentOperation = .none
             value = "0"
@@ -75,6 +80,28 @@ class CalcViewModel: ObservableObject {
             secondNumber = 0
             currentOperation = .none
             
+        case .negative:
+            // Обработка кейса .negative
+            if value == "0" {
+                calculatedValue = -calculatedValue
+                formattedCalculatedValue = formatResult(calculatedValue)
+            } else {
+                var currentValue = Double(value) ?? 0.0
+                currentValue = -currentValue
+                value = String(currentValue)
+            }
+            
+        case .percent:
+                // Обработка кейса .percent
+                if value == "0" {
+                    calculatedValue /= 100
+                    formattedCalculatedValue = formatResult(calculatedValue)
+                } else {
+                    var currentValue = Double(value) ?? 0.0
+                    currentValue /= 100
+                    value = String(currentValue)
+                }
+            
         default:
             if value == "0" {
                 value = button.rawValue
@@ -83,7 +110,7 @@ class CalcViewModel: ObservableObject {
             }
         }
     }
-
+    
     func calculateResult() {
         switch currentOperation {
         case .add:
@@ -93,9 +120,36 @@ class CalcViewModel: ObservableObject {
         case .multiply:
             calculatedValue = firstNumber * secondNumber
         case .divide:
-            calculatedValue = firstNumber / secondNumber
+            if secondNumber == 0 {
+                calculatedValue = 0
+            } else {
+                calculatedValue = firstNumber / secondNumber
+            }
         case .none:
             break
+        }
+    }
+    
+    func formatResult(_ result: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 7
+        formatter.minimumFractionDigits = 0
+        formatter.usesSignificantDigits = true
+        formatter.maximumSignificantDigits = 7
+        
+        // Проверяем, равен ли результат 0
+        if result == 0 {
+            return "0"
+        }
+        
+        // Форматируем результат в научной нотации, если число очень большое или очень маленькое
+        if abs(result) >= 1e+9 || abs(result) < 1e-6 {
+            formatter.numberStyle = .scientific
+            return formatter.string(from: NSNumber(value: result)) ?? "0"
+        } else {
+            // Если нет, возвращаем строку с форматированным дробным числом
+            return formatter.string(from: NSNumber(value: result)) ?? "0"
         }
     }
     
@@ -107,8 +161,6 @@ class CalcViewModel: ObservableObject {
             }
         }
     }
-    
-    
 }
 
 extension String {
@@ -116,4 +168,3 @@ extension String {
         return Double(self) ?? 0.0
     }
 }
-
