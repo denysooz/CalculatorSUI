@@ -10,7 +10,7 @@ import SwiftUI
 
 class CalcViewModel: ObservableObject {
     
-    @Published var characterLimit: Int
+    var characterLimit: Int
     init(limit: Int = 12){
         characterLimit = limit
     }
@@ -19,15 +19,13 @@ class CalcViewModel: ObservableObject {
             if value.count > 10 {
                 value = String(value.prefix(10))
             }
-            editingChanged(value)
         }
     }
-    @Published var calculatedValue: String = "0"
-    @Published var tappedNumber: Int = 0
-    @Published var currentOperation: Operation = .none
-    @Published var previousOperation: Operation = .none
-    @Published var firstNumber: Double = 0
-    @Published var secondNumber: Double = 0
+    @Published var calculatedValue = 0
+    var runningNumber = 0
+    var firstNumber: Int = 0
+    var secondNumber: Int = 0
+    var currentOperation: Operation = .none
     
     let buttons: [[CalcButton]] = [
         [.clear, .negative, .percent, .divide],
@@ -36,109 +34,68 @@ class CalcViewModel: ObservableObject {
         [.one, .two, .three, .add],
         [.zero, .decimal, .equal]
     ]
-    
+
     func didTap(button: CalcButton) {
         switch button {
         case .add, .subtract, .multiply, .divide:
-            handleOperatorTap(button)
+            if currentOperation == .none {
+                if value == "0" {
+                    firstNumber = calculatedValue
+                } else {
+                    firstNumber = Int(value) ?? 0
+                }
+                value = "0"
+            } else {
+                secondNumber = Int(value) ?? 0
+                calculateResult()
+                firstNumber = secondNumber
+                value = "0"
+            }
+            
+            if button == .add {
+                currentOperation = .add
+            } else if button == .subtract {
+                currentOperation = .subtract
+            } else if button == .multiply {
+                currentOperation = .multiply
+            } else if button == .divide {
+                currentOperation = .divide
+            }
+            
         case .equal:
+            secondNumber = Int(value) ?? 0
             calculateResult()
             currentOperation = .none
-            firstNumber = 0
-            secondNumber = 0
+            value = "0"
+            
         case .clear:
             value = "0"
-            calculatedValue = "0"
-            currentOperation = .none
+            calculatedValue = 0
             firstNumber = 0
             secondNumber = 0
-        case .decimal:
-            if !value.contains(".") {
-                value += "."
-            }
-        case .negative:
-            if let number = Double(value) {
-                value = String(number * -1)
-            }
-        case .percent:
-            if let number = Double(value) {
-                value = String(number / 100)
-            }
+            currentOperation = .none
+            
         default:
             if value == "0" {
                 value = button.rawValue
             } else {
-                value += button.rawValue
-            }
-            tappedNumber = Int(button.rawValue) ?? 0
-            if currentOperation == .none {
-                calculatedValue = value
+                value = "\(value)\(button.rawValue)"
             }
         }
     }
-    
-    private func handleOperatorTap(_ button: CalcButton) {
-        if currentOperation == .none {
-            currentOperation = operationForButton(button)
-            firstNumber = Double(value) ?? 0
-            secondNumber = 0
-            value += currentOperation.toString()
-        } else {
-            calculateResult()
-            currentOperation = operationForButton(button)
-            firstNumber = calculatedValue.doubleValue
-            secondNumber = 0
-            value = String(firstNumber) + currentOperation.toString()
-        }
-    }
-    
-    private func calculateResult() {
+
+    func calculateResult() {
         switch currentOperation {
         case .add:
-            calculatedValue = formatResult(Decimal(firstNumber + (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0)))
-            value = calculatedValue
+            calculatedValue = firstNumber + secondNumber
         case .subtract:
-            calculatedValue = formatResult(Decimal(firstNumber - (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0)))
-            value = calculatedValue
+            calculatedValue = firstNumber - secondNumber
         case .multiply:
-            calculatedValue = formatResult(Decimal(firstNumber * (Double(value.components(separatedBy: currentOperation.toString()).last ?? "0") ?? 0)))
-            value = calculatedValue
+            calculatedValue = firstNumber * secondNumber
         case .divide:
-            let secondNumberString = value.components(separatedBy: currentOperation.toString()).last ?? "0"
-            secondNumber = Double(secondNumberString) ?? 0
-            if secondNumber == 0 {
-                value = "Error"
-                calculatedValue = "0"
-            } else {
-                calculatedValue = formatResult(Decimal(firstNumber / secondNumber))
-                value = calculatedValue
-            }
+            calculatedValue = firstNumber / secondNumber
         case .none:
             break
-        }
-    }
-    
-    private func formatResult(_ value: Decimal) -> String {
-        let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .decimal
-        numberFormatter.locale = Locale(identifier: "en_US") // or Locale.current
-
-        let formattedValue = numberFormatter.string(from: value as NSNumber) ?? "Error"
-        return formattedValue
-    }
-
-    private func operationForButton(_ button: CalcButton) -> Operation {
-        switch button {
-        case .add:
-            return .add
-        case .subtract:
-            return .subtract
-        case .multiply:
-            return .multiply
-        case .divide:
-            return .divide
-        default:
-            return .none
         }
     }
     
@@ -151,17 +108,7 @@ class CalcViewModel: ObservableObject {
         }
     }
     
-    func updateCalculatedValue(_ newValue: String) {
-        calculatedValue = newValue
-    }
     
-    func editingChanged(_ value: String) {
-        if value.isEmpty {
-            self.calculatedValue = "0"
-        } else {
-            self.calculatedValue = value
-        }
-    }
 }
 
 extension String {

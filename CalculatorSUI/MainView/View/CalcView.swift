@@ -38,9 +38,7 @@ struct CalcView: View {
                     }
                     .padding(.bottom)
                     .padding(.trailing)
-                    .onChange(of: viewModel.value) { newValue in
-                                    viewModel.editingChanged(newValue)
-                                }
+                
                     
                     HStack {
                         Spacer()
