@@ -66,7 +66,7 @@ class CalcViewModel: ObservableObject {
             } else if button == .divide {
                 currentOperation = .divide
             }
-            
+
         case .equal:
             secondNumber = Double(value) ?? 0
             calculateResult()
@@ -88,26 +88,30 @@ class CalcViewModel: ObservableObject {
             } else {
                 var currentValue = Double(value) ?? 0.0
                 currentValue = -currentValue
-                value = String(currentValue)
+                formattedCalculatedValue = formatResult(currentValue)
             }
             
         case .percent:
-                // Обработка кейса .percent
-                if value == "0" {
-                    calculatedValue /= 100
-                    formattedCalculatedValue = formatResult(calculatedValue)
-                } else {
-                    var currentValue = Double(value) ?? 0.0
-                    currentValue /= 100
-                    value = String(currentValue)
-                }
+            // Обработка кейса .percent
+            if value == "0" {
+                calculatedValue /= 100
+                formattedCalculatedValue = formatResult(calculatedValue)
+            } else {
+                var currentValue = Double(value) ?? 0.0
+                currentValue /= 100
+                value = String(currentValue)
+            }
             
         default:
             if value == "0" {
                 value = button.rawValue
+                if calculatedValue == 0.0 {
+                    calculatedValue = Double(value) ?? 0.0
+                }
             } else {
                 value = "\(value)\(button.rawValue)"
             }
+            
         }
     }
     
@@ -133,22 +137,19 @@ class CalcViewModel: ObservableObject {
     func formatResult(_ result: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 7
+        formatter.maximumFractionDigits = 4
         formatter.minimumFractionDigits = 0
         formatter.usesSignificantDigits = true
-        formatter.maximumSignificantDigits = 7
+        formatter.maximumSignificantDigits = 4
         
-        // Проверяем, равен ли результат 0
         if result == 0 {
             return "0"
         }
         
-        // Форматируем результат в научной нотации, если число очень большое или очень маленькое
         if abs(result) >= 1e+9 || abs(result) < 1e-6 {
             formatter.numberStyle = .scientific
             return formatter.string(from: NSNumber(value: result)) ?? "0"
         } else {
-            // Если нет, возвращаем строку с форматированным дробным числом
             return formatter.string(from: NSNumber(value: result)) ?? "0"
         }
     }

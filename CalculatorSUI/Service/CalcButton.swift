@@ -50,4 +50,12 @@ enum CalcButton: String {
             return .white
         }
     }
+    
+    func buttonWidth(item: CalcButton) -> CGFloat {
+        return item == .equal ? (UIScreen.main.bounds.width - (4*6))/4 * 2 : (UIScreen.main.bounds.width - (5*12))/4
+    }
+    
+    func buttonHeight() -> CGFloat {
+        return (UIScreen.main.bounds.width - (5*12))/4
+    }
 }

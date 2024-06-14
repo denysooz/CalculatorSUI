@@ -63,8 +63,8 @@ struct CalcView: View {
                                 Text(item.rawValue)
                                     .font(.system(size: 40))
                                     .frame(
-                                        width: self.buttonWidth(item: item),
-                                        height: buttonHeight()
+                                        width: item.buttonWidth(item: item),
+                                        height: item.buttonHeight()
                                     )
                                     .background(item.buttonBackgroundColor)
                                     .foregroundStyle(item.buttonTextColor)
@@ -77,14 +77,6 @@ struct CalcView: View {
                 }
             }
         }
-    }
-    
-    func buttonWidth(item: CalcButton) -> CGFloat {
-        return item == .equal ? (UIScreen.main.bounds.width - (4*6))/4 * 2 : (UIScreen.main.bounds.width - (5*12))/4
-    }
-    
-    func buttonHeight() -> CGFloat {
-        return (UIScreen.main.bounds.width - (5*12))/4
     }
 }
 
