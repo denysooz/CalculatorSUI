@@ -1,8 +1,8 @@
-Calculator on SwiftUI
+<h1>Calculator on SwiftUI</h1>
 
-![Uploading Screenshot 2024-06-14 at 15.59.20.png…]()
+<img width="471" alt="CalculatorUI" src="https://github.com/denysooz/CalculatorSUI/assets/155985909/ea43ab95-d543-45ac-b0cc-69fcf5352257">
 
 1. The calculator contains the basic functionality of working with different types of numbers
 2. It is possible to delete digits by swipes
 
-Have a nice day :)
+Have a nice day 🙂
